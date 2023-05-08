@@ -49,10 +49,13 @@ async function getTutorialGroups() {
 
 const types = ["text-exercises", "modeling-exercises", "programming-exercises", "file-upload-exercises"]
 
-let content = ""
-
 const exerciseMap = new Map()
 const exerciseList = []
+
+if (jwt === "") {
+    console.error("Please set your jwt in app.js")
+    return
+}
 
 getAllExercises().then(r => console.log("Finished"));
 
@@ -97,26 +100,36 @@ function groupByTutorialGroup() {
             const groupName = tutorialGroup.title
             const participants = tutorialGroup.registrations
 
-            content += "---- " + groupName + "\n"
             console.log("current group", groupName)
+
+            let content = ""
 
             for (let exerciseName of exerciseList) {
                 const map = exerciseMap.get(exerciseName)
-                content += "-- " + exerciseName + "\n"
 
+                let exerciseContent = ""
+
+                exerciseContent += "-- " + exerciseName + "\n"
+
+                let found = false
                 for (let participant of participants) {
                     const login = participant.student.login
                     if (map.has(login)) {
-                        content += login + " " + map.get(login) + "\n"
+                        exerciseContent += login + " " + map.get(login) + "\n"
+                        found = true
                     }
                 }
-            }
-        }
 
-        fs.writeFile('output.txt', content, function (err) {
-            if (err) return console.log(err);
-            console.log('Saved file');
-        });
+                if (found) {
+                    content += exerciseContent + "\n"
+                }
+            }
+
+            fs.writeFile(groupName + '.txt', content, function (err) {
+                if (err) return console.log(err);
+                console.log('Saved file');
+            });
+        }
     });
 }
 
